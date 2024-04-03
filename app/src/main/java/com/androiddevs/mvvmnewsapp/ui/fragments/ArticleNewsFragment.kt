@@ -1,4 +1,4 @@
-package com.androiddevs.mvvmnewsapp.fragments
+package com.androiddevs.mvvmnewsapp.ui.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
