@@ -10,7 +10,10 @@ class NewsViewModelProviderFactory(
     val newsRepository: NewsRepository
 ) : ViewModelProvider.Factory {
 
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return NewsViewModel(app, newsRepository) as T
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(NewsViewModel::class.java)) {
+            return NewsViewModel(app, newsRepository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

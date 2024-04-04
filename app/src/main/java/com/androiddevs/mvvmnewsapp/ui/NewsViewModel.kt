@@ -34,6 +34,8 @@ class NewsViewModel(app: Application, val newsRespository: NewsRepository) : And
 
     var searchNewsResponse: NewsResponse? = null
 
+    var previousSearch = ""
+
     init {
         getBreakingNews("us")
     }
@@ -76,6 +78,7 @@ class NewsViewModel(app: Application, val newsRespository: NewsRepository) : And
                     oldArticles?.addAll(newArticles)
                 }
                 return Resource.Success(searchNewsResponse ?: resultResponse)
+                //return Resource.Success(resultResponse)
             }
         }
 
@@ -96,14 +99,19 @@ class NewsViewModel(app: Application, val newsRespository: NewsRepository) : And
         searchNews.postValue(Resource.Loading())
         try {
             if (hasInternetConection()) {
+                if (searchQuery != previousSearch){
+                    previousSearch = searchQuery
+                    searchNewsPage = 1
+                    searchNewsResponse = null
+                }
                 val response = newsRespository.searchNews(searchQuery, searchNewsPage)
                 searchNews.postValue(handleSearchNewsResponse(response))
             } else {
                 searchNews.postValue(Resource.Error("No internet connection"))
             }
 
-        }catch (t: Throwable) {
-            when(t) {
+        } catch (t: Throwable) {
+            when (t) {
                 is IOException -> searchNews.postValue(Resource.Error("Network Failure"))
                 else -> searchNews.postValue(Resource.Error("Convertion Error"))
             }
@@ -120,8 +128,8 @@ class NewsViewModel(app: Application, val newsRespository: NewsRepository) : And
                 breakingNews.postValue(Resource.Error("No internet connection"))
             }
 
-        }catch (t: Throwable) {
-            when(t) {
+        } catch (t: Throwable) {
+            when (t) {
                 is IOException -> breakingNews.postValue(Resource.Error("Network Failure"))
                 else -> breakingNews.postValue(Resource.Error("Convertion Error"))
             }
@@ -134,7 +142,8 @@ class NewsViewModel(app: Application, val newsRespository: NewsRepository) : And
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val activeNetwork = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
             return when {
                 capabilities.hasTransport(TRANSPORT_WIFI) -> true
                 capabilities.hasTransport(TRANSPORT_CELLULAR) -> true
@@ -143,7 +152,7 @@ class NewsViewModel(app: Application, val newsRespository: NewsRepository) : And
             }
         } else {
             connectivityManager.activeNetworkInfo?.run {
-                return when(type) {
+                return when (type) {
                     TYPE_WIFI -> true
                     TYPE_MOBILE -> true
                     TYPE_ETHERNET -> true
